@@ -12,14 +12,24 @@ const request = require('request');
 
 let answers = [];
 
+// request("https://slack.com/api/chat.postMessage?token=xoxp-616767169504-605277361219-618578769559-26a7236e448e9383bec6357d814ccf48&channel=CJ6GXEXMM&text=Hello&pretty=1",
+//     function optionalCallback(err, httpResponse, body) {
+//         if (err) {
+//             return console.error("upload failed: ", err);
+//         }
+//         console.log("Upload successful!  Server responded with: ", body);
+// });
 
 
-const url = ’https://slack.com/api/chat.postMessage?';
-const token = ‘xoxp-616767169504 - 605277361219 - 618578769559 - 26a7236e448e9383bec6357d814ccf48’;
-const channel = ‘CJ6GXEXMM’;
-const text = ‘Hello Armine’
 
-request(`${url}token=${token}&channel=${channel}&text=${text}&pretty=1`,
+const url = 'https://slack.com/api/chat.postMessage?';
+const token = 'xoxp-616767169504-605277361219-617535185568-3a9da8236dcc8f39801190cf51d9d209';
+const channel = 'CJ6GXEXMM';
+const text = 'Hello Armine';
+const username = 'armine';
+
+
+request(`${url}token=${token}&channel=${channel}&text=${text}&username=${username}&pretty=1`,
  function optionalCallback(err, httpResponse, body) {
     if (err) {
         return console.error("upload failed: ", err);
@@ -28,13 +38,6 @@ request(`${url}token=${token}&channel=${channel}&text=${text}&pretty=1`,
 })
 
 
-// request("https://slack.com/api/chat.postMessage?token=xoxp-616767169504-605277361219-618578769559-26a7236e448e9383bec6357d814ccf48&channel=CJ6GXEXMM&text=Hello&pretty=1",
-//     function optionalCallback(err, httpResponse, body) {
-//         if (err) {
-//             return console.error("upload failed: ", err);
-//         }
-//         console.log("Upload successful!  Server responded with: ", body);
-// });
 
 // const token = '';
 // const channel = '';

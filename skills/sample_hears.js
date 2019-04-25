@@ -22,31 +22,29 @@ let answers = [];
 
 
 
-const url = 'https://slack.com/api/chat.postMessage?';
-const token = 'xoxp-616767169504-605277361219-617535185568-3a9da8236dcc8f39801190cf51d9d209';
-const channel = 'CJ6GXEXMM';
-const text = 'Hello Armine';
-const username = 'armine';
+// const url = 'https://slack.com/api/chat.postMessage?';
+// const token = 'xoxp-616767169504-605277361219-617476328917-65f268d290eac5894084c4311b91dda7';
+// const channel = 'CJ6GXEXMM';
+// const text = 'Hello Varik';
+// const username = 'Varik';
 
 
-request(`${url}token=${token}&channel=${channel}&text=${text}&username=${username}&pretty=1`,
- function optionalCallback(err, httpResponse, body) {
-    if (err) {
-        return console.error("upload failed: ", err);
-    }
-    console.log("Upload successful!  Server responded with: ", body);
-})
+// request(`${url}token=${token}&channel=${channel}&text=${text}&username=${username}&pretty=1`,
+//  function optionalCallback(err, httpResponse, body) {
+//     if (err) {
+//         return console.error("upload failed: ", err);
+//     }
+//     console.log("Upload successful!  Server responded with: ", body);
+// })
 
 
 
-// const token = '';
-// const channel = '';
-// const text = ''
-// request.post({
-//     url: 'https://slack.com/api/chat.postMessage',
-//     token: 'xoxp-616767169504-605277361219-618578769559-26a7236e448e9383bec6357d814ccf48',
-//     channel: 'CJ6GXEXMM',
-//     text: 'Hello Armine'
+// request.post('https://slack.com/api/chat.postMessage',{
+//     form:{
+//         token: 'xoxp-616767169504-605277361219-617476328917-65f268d290eac5894084c4311b91dda7',
+//         channel: 'CJ6GXEXMM',
+//         text: 'Hello Armine'
+//     }
 // }, function optionalCallback(err, httpResponse, body) {
 //     if (err) {
 //         return console.error('upload failed:', err);
@@ -57,13 +55,15 @@ request(`${url}token=${token}&channel=${channel}&text=${text}&username=${usernam
 
 module.exports = function (controller) {
 
-    controller.hears(['^hello$'], 'direct_message,direct_mention', function(bot, message) {
-        bot.startPrivateConversation({user: bot.config.createdBy}, function (err, convo) {
+    controller.hears(['^daily$'], 'direct_message,direct_mention', function(bot, message) {
+
+        bot.startPrivateConversation({user: message.user}, function (err, convo) {
             // const member = convo.members();
             // console.log('member::::', convo);
             convo.activate();
 
             const userID = convo.context.user;
+            
 
             // console.log("-------", bot.api);
             // bot.api.users.list({}, function (err, list) {
@@ -73,29 +73,36 @@ module.exports = function (controller) {
 
             //     console.log("user:::",user);
             // })
-            
-            bot.api.channels.list({}, function (err, list) {
-                // bot.reply(message, "polo");
-                console.log('list::::::::',list);
-                // const user = list.members.filter((user) => user.id === userID)[0];
+
+            const findUser = (userID) => {
+                
+              return new Promise (res => {
+                bot.api.users.list({}, function (err, list) {
+                    userName = list.members.find((user) => user.id === userID).profile.real_name;
+                    res(userName);
+                 })
+              })
+                
 
                 // console.log("user:::", user);
-            })
+
+                // console.log("afterrrrrrrrrr", userName);
+                
+            }
+          
 
             let obj = {};
             if (err) {
                 console.log(err);
             } else {
                 convo.ask("What have you done?", (response, convo) => {
-                    console.log("///////////", response);
+                    // console.log("///////////", response);
                     if(response.event.text) {
-                        console.log("here");
+                        console.log("here+++", response.event.user);
                         obj.userId = response.event.user;
                         obj.question1 = response.question;
                         obj.response1 = response.event.text;
-                        // convo.ask("What are you going to do today?", (response, convo) => {
-                        //     answers.set("What are you going to do today?", response.text);
-                        // })
+                        // findUser(response.event.user);
                     }
                     convo.next();
                     convo.ask("What are you going to do today?", (res, convo) => {
@@ -107,15 +114,49 @@ module.exports = function (controller) {
                             obj.response3 = res.event.text;
                             convo.say('Thank you, that is all for now');
                             convo.next();
-                            answers.push(obj);
+                            // answers.push(obj);
 
                             console.log("convo>>>>>>>>>>>>>", convo);
                             // bot.send({
                             //     channel: 'general',
                             //     user: userID,
                             //     text: JSON.stringify(obj)
-                            // });    
-                             
+                            // }); 
+                         
+                            // let userName = findUser('UHT85AM6F');
+                            const allTranscript = convo.transcript.filter(currentTranscript => currentTranscript.token);
+                            const length = allTranscript.length;
+                            const questions = allTranscript.map(curr => curr.question);
+                            const answers = allTranscript.map(curr => curr.text);
+                            let convertsation = '';
+                            for(let i = 0; i < length; i++){
+                                convertsation += `\n *${questions[i]}* \n ${answers[i]} `;
+                            }
+
+                            console.log(convertsation)
+                            let text = `> *${obj.question1}* \n>  ${obj.response1} \n> *${obj.question2}* \n> ${obj.response2} \n> *${obj.question3}* \n> ${obj.response3}`  
+
+                            findUser(obj.userId).then(username => {
+
+                                request.post('https://slack.com/api/chat.postMessage',{
+                                    form:{
+                                        token: 'xoxp-616767169504-605277361219-617476328917-65f268d290eac5894084c4311b91dda7',
+                                        channel: 'CJ6GXEXMM',
+                                        text: convertsation,
+                                        username,
+                                    }
+                                    }, function optionalCallback(err, httpResponse, body) {
+                                        if (err) {
+                                            return console.error('upload failed:', err);
+                                        }
+                                        console.log('Upload successful!  Server responded with:', body);
+                                    });
+
+
+                            });
+                            
+     
+                                
                         })
                     })
                 })
